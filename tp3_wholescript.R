@@ -1,3 +1,7 @@
+#Welcome! TP3_PIF By Thierry Laurent
+# dont forget to change the path of your files
+
+# Step 1:
 
 # load libraries
 library(terra)
@@ -12,12 +16,12 @@ library(yardstick)
 library(raster)
 
 
-# RcolorBrewer palettes
+# RcolorBrewer colors
 
 display.brewer.all()
 
 
-# First you need to extract the non paved roads from the shp
+# Here its optional. First you need to extract the non paved roads from the shp
 
 shp <- st_read("Routes_repro.shp")
 print(shp)
@@ -281,8 +285,9 @@ plot(reclassified_raster)
 output_file <- "pentes_reclass.tif"  
 writeRaster(reclassified_raster, filename=output_file, overwrite=TRUE)
 
+############################## Final step ######################################
 
-#Final step. Raster algebra :) Do the sum of the canopy, slope and routes rasters and then multiply by the raster sum binaire
+#Raster algebra :) Do the sum of the canopy, slope and routes rasters and then multiply by the raster sum binaire
 
 # Load the all the rasters
 raster1 <- rast("routes_eucle_reclass2.tif")
@@ -383,7 +388,6 @@ attribute_table <- freq(result_raster)
 
 # View the attribute table
 print(attribute_table)
-
 
 
 
