@@ -1,0 +1,171 @@
+---
+title: "TP3 Analyse multicritère"
+author: "Thierry Laurent St-Pierre"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: default
+---
+## Introduction
+Note : L’entièreté des analyses multicritères présentent dans ce travail ont été réalisées dans R studio. Le code est disponible sur le site web Github en suivant le lien suivant : https://github.com/tofunori/tp3_pif1003.git
+
+---
+title: "TP3 Analyse Multicritère"
+output: html_document
+---
+## Figure 1
+
+<style> body {text-align: justify} </style> La figure suivante illustre neuf matrices, dont une (Rasters_binaire), qui est le résultat de la multiplication des matrices Routes, Rivières, Marais, Lac et Bâtiments. Par ailleurs, les matrices Routes_eucle, Pentes et Canopy ont été combinées par addition, créant ainsi une matrice unique représentant la somme de ces éléments avant d'être multipliée par la matrice Rasters_binaire.
+Des catégories ont été établies pour les couches Routes_eucle, Pentes et Canopy, attribuant un poids différentiel à chaque matrice. Ainsi, Routes_eucle et Canopy sont divisées en 5 classes, avec des valeurs allant respectivement de 2 à 10 et de 0 à 20, tandis que Pentes est répartie en 6 classes de 0 à 10. Ces intervalles ont été choisis pour garantir une distribution équitable des valeurs au sein des matrices. Cependant, pour les besoins de cet exercice et la construction du modèle, ces intervalles n'ont pas été l'objet d'une étude approfondie. À l'avenir, pour affiner notre modèle, il serait pertinent d'examiner des références adéquates pour déterminer une classification plus précise pour chaque plage de valeurs des différentes matrices. 
+
+
+
+
+```{r echo = FALSE, message = FALSE, warning=FALSE}
+
+# load libraries
+library(terra)
+library(tmap)
+library(tmaptools)
+library(sf)
+library(dplyr)
+library(randomForest)
+library(ggplot2)
+library(RColorBrewer)
+library(yardstick)
+library(raster)
+# Load the all the rasters
+raster1 <- rast("routes_eucle_reclass2.tif")
+raster2 <- rast("pentes_reclass.tif")
+raster3 <- rast("canopy_reclass2.tif")
+raster4 <- rast("rasters_sum.tif")
+raster5 <- rast("rivieres_reclass.tif")
+raster6 <- rast("routes_reclass.tif")
+raster7 <- rast("lacs_reclass.tif")
+raster8 <- rast("marais_reclass.tif")
+raster9 <- rast("batiments_reclass.tif")
+# Plotting setup: 2 rows, 2 columns
+par(mfrow = c(3, 3))
+
+# Plot each raster
+plot(raster1, main = "Routes_eucle")
+plot(raster2, main = "Pentes")
+plot(raster3, main = "Canopy")
+plot(raster4, main = "Rasters_binaire")
+plot(raster5, main = "Rivieres")
+plot(raster6, main = "Routes")
+plot(raster7, main = "Lacs")
+plot(raster8, main = "Marais")
+plot(raster9, main = "Batiments")
+
+# Reset plotting layout
+par(mfrow = c(1, 1))
+```
+----
+# Figure 2
+
+<style> body {text-align: justify} </style> La figure 2 illustre la matrice finale, répartie en cinq classes de potentiel de coupe. La classe 1 signale un potentiel de coupe faible, tandis que la classe 5 signifie un potentiel excellent. Les espaces blancs, qui correspondent à des valeurs nulles, signalent des zones où la coupe est impossible, déterminées par la somme des matrices binaires
+
+
+
+```{r echo = FALSE, message = FALSE, warning=FALSE}
+# load libraries
+library(terra)
+library(tmap)
+library(tmaptools)
+library(sf)
+library(dplyr)
+library(randomForest)
+library(ggplot2)
+library(RColorBrewer)
+library(yardstick)
+library(raster)
+
+# Load the final raster
+raster_final <- "raster_final_reclassed.tif"  
+r <- rast(raster_final)
+
+# Define colors for the plot
+num_classes <- 5
+color_palette <- brewer.pal(num_classes, "RdYlGn") # Replace "YlGnBu" with your chosen palette
+
+# Plot the reclassified raster
+plot(r, col=color_palette, main="Potentiel de coupe forestiere")
+```
+---
+
+# Figure 3
+
+<style> body {text-align: justify} </style> La figure 3 montre la superficie que chaque catégorie occupe sur le territoire étudié, exprimée en kilomètres carrés. La catégorie 4 occupe la plus grande superficie, avec 120,65 km², suivie par la catégorie 3 avec 77,87 km². La classe 1 est la moins représentée, avec seulement 0,08 km².
+
+
+```{r echo = FALSE, message = FALSE, warning=FALSE}
+# load libraries
+library(terra)
+library(tmap)
+library(tmaptools)
+library(sf)
+library(dplyr)
+library(randomForest)
+library(ggplot2)
+library(RColorBrewer)
+library(yardstick)
+library(raster)
+
+
+# Load the final raster
+raster_final <- "raster_final.tif"  
+r <- rast(raster_final)
+
+
+# Load the raster
+raster_final <- "raster_final.tif"  
+r <- rast(raster_final)
+reclass_func <- function(x) {
+  ifelse(x == 0, NA,  # Set 0 to NA
+         ifelse(x >= 1 & x <= 15, 1,  # Classify 1-15 as 1
+                ifelse(x > 15 & x <= 20, 2,  # 16-20 as 2
+                       ifelse(x > 20 & x <= 25, 3,  # 21-25 as 3
+                              ifelse(x > 25 & x <= 30, 4,  # 26-30 as 4
+                                     ifelse(x > 30 & x <= 40, 5, NA)  # 31-40 as 5, others as NA
+                              )
+                       )
+                )
+         )
+  )
+}
+
+
+# Apply the manual reclassification
+raster_final_reclass <- app(r, reclass_func)
+
+
+# Define colors for the plot
+#num_classes <- 5
+#color_palette <- brewer.pal(num_classes, "RdYlGn") # Replace "YlGnBu" with your chosen palette
+
+# Extract the values from the raster
+values <- values(raster_final_reclass)
+
+# Calculate the area in km² for each category
+freq_data <- freq(raster_final_reclass)
+freq_data$area_km2 <- freq_data$count / 1e6  # Convert area to km²
+
+# Create a data frame for ggplot
+data_for_plot <- data.frame(category = freq_data[, "value"], area_km2 = freq_data[, "area_km2"])
+
+ggplot(data_for_plot, aes(x = category, y = area_km2, fill = as.factor(category))) +
+  geom_bar(stat = "identity", color="black") +
+  geom_text(aes(label = round(area_km2, 2)), vjust = -0.5, color = "black") +  
+  scale_fill_brewer(palette = "Set3", name = "Category") +  # Custom legend title
+  theme_light() +
+  labs(title = "Area per Category in km²",
+       x = "Category",
+       y = "Area (km²)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+---
+# Conclusion
+
+<style> body {text-align: justify} </style> En conclusion, ces données révèlent que la majorité du territoire possède un bon potentiel de coupe forestière, bien qu'il ne soit ni excellent ni insuffisant. Les zones problématiques sont celles présentant une forte pente, une canopée basse et un accès routier limité. Toutefois, les valeurs quantitatives associées à chaque classe pourraient changer si les plages de catégories des matrices Route_eucle, Pentes et Canopy étaient modifiées. De plus pour améliorer la visualisation globale, il serait bénéfique d'importer la matrice finale dans des logiciels de cartographie tels que QGIS ou ArcGIS, afin de créer une carte plus esthétique et facile à interpréter.
+
+
