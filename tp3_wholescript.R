@@ -16,26 +16,13 @@ library(yardstick)
 library(raster)
 
 
-# RcolorBrewer colors
+# RcolorBrewer colors. Many choices!
 
 display.brewer.all()
 
 
-# Here its optional. First you need to extract the non paved roads from the shp
-
-shp <- st_read("Routes_repro.shp")
-print(shp)
-
-head(shp)
-
-filtered_shp <- shp[shp$DESCRIPTIO == "Chemin carrossable non pavé", ]
-
-#Export it
-st_write(filtered_shp, "routes_chemins_repro.shp")
-
-
 ################################################################################
-# Now load the shp and reprojected them with with the desired EPSG. In this case is EPSG: 2951
+# First load the shp and reprojected them with with the desired EPSG. In this case is EPSG: 2951
 
 # Load the raster
 raster_file <- "canopy.tif"
@@ -65,6 +52,19 @@ output_paths <- c("Batiments_repro2.shp",
 Map(function(shp, out_path) {
   st_write(shp, out_path)
 }, shapefiles, output_paths)
+
+
+# Here its optional. First you need to extract the non paved roads from the shp
+
+shp <- st_read("Routes_repro.shp")
+print(shp)
+
+head(shp)
+
+filtered_shp <- shp[shp$DESCRIPTIO == "Chemin carrossable non pavé", ]
+
+#Export it
+st_write(filtered_shp, "routes_chemins_repro.shp")
 
 ################################################################################
 
@@ -395,31 +395,32 @@ print(attribute_table)
 
 ##########################################################################
 
-# Calculate the area for each category
+# Stats for each categories
 freq_data <- freq(raster_final_reclass)
 freq_data[, "area_m2"] <- freq_data[, "count"]  # Each pixel is 1m²
 
-# Display the statistics
 print(freq_data)
 
-# Extract the values from the raster
 values <- values(raster_final_reclass)
 
-# Calculate the frequency and area in km² for each category
+# m2 to km2
 freq_data <- freq(raster_final_reclass)
 freq_data$area_km2 <- freq_data$count / 1e6  # Convert area to km²
 
-# Create a data frame for ggplot
+# Plot parameters
 data_for_plot <- data.frame(category = freq_data[, "value"], area_km2 = freq_data[, "area_km2"])
 
-# Customized plot with labels
+# Customized plot with a uniform font size for all text elements
+base_size <- 24  # Set the base size for all text elements
+
+
 ggplot(data_for_plot, aes(x = category, y = area_km2, fill = as.factor(category))) +
-  geom_bar(stat = "identity", color="black") +
-  geom_text(aes(label = round(area_km2, 2)), vjust = -0.5, color = "black") +  # Add labels
-  scale_fill_brewer(palette = "Set3") +
+  geom_bar(stat = "identity", color = "black") +
+  geom_text(aes(label = round(area_km2, 2)), vjust = -0.5, color = "black", size = 6.5) +
+  scale_fill_brewer(palette = "Set3", name = "Classes") +  
   theme_light() +
   labs(title = "Area per Category in km²",
-       x = "Category",
+       x = "Categorie",
        y = "Area (km²)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+  theme(text = element_text(size = base_size),  # Global text size
+        axis.text.x = element_text(angle = 45, hjust = 1))
