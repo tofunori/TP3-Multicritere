@@ -360,6 +360,27 @@ color_palette <- brewer.pal(num_classes, "RdYlGn") # Replace "YlGnBu" with your 
 # Plot the reclassified raster
 plot(raster_final_reclass, col=color_palette, main="Potentiel de coupe forestiere")
 
+### Create a histogram and plot it ####
+
+# Extract the values 
+values <- values(raster_final_reclass)
+
+# Calculate the area in km² 
+freq_data <- freq(raster_final_reclass)
+freq_data$area_km2 <- freq_data$count / 1e6  # Convert area to km²
+
+# Plot the histogram
+data_for_plot <- data.frame(category = freq_data[, "value"], area_km2 = freq_data[, "area_km2"])
+
+ggplot(data_for_plot, aes(x = category, y = area_km2, fill = as.factor(category))) +
+  geom_bar(stat = "identity", color="black") +
+  geom_text(aes(label = round(area_km2, 2)), vjust = -0.5, color = "black") +  
+  scale_fill_brewer(palette = "Set3", name = "Category") +  # Custom legend title
+  theme_light() +
+  labs(title = "Area per Category in km²",
+       x = "Category",
+       y = "Area (km²)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 # Save the final raster! Good job ;)
 output_file <- "raster_final_5class.tif"  
 writeRaster(raster_final_reclass, filename=output_file, overwrite=TRUE)
@@ -367,9 +388,10 @@ writeRaster(raster_final_reclass, filename=output_file, overwrite=TRUE)
 
 ###### Plot all the rasters in one plot ###########
 
-# Plotting them. In this case: 3 rows, 3 columns
+# Plotting setup: 2 rows, 2 columns
 par(mfrow = c(3, 3))
 
+# Plot each raster
 plot(raster1, main = "Routes_eucle")
 plot(raster2, main = "Pentes")
 plot(raster3, main = "Canopy")
@@ -382,45 +404,12 @@ plot(raster9, main = "Batiments")
 
 # Reset plotting layout
 par(mfrow = c(1, 1))
-
-# Create frequency table
-attribute_table <- freq(result_raster)
-
-# View the attribute table
-print(attribute_table)
-
 #############################################################################
 
 #Get the stats from the final raster
 
 ##########################################################################
 
-# Stats for each categories
-freq_data <- freq(raster_final_reclass)
-freq_data[, "area_m2"] <- freq_data[, "count"]  # Each pixel is 1m²
-
-print(freq_data)
-
-values <- values(raster_final_reclass)
-
-# m2 to km2
-freq_data <- freq(raster_final_reclass)
-freq_data$area_km2 <- freq_data$count / 1e6  # Convert area to km²
-
-# Plot parameters
-data_for_plot <- data.frame(category = freq_data[, "value"], area_km2 = freq_data[, "area_km2"])
-
-# Customized plot with a uniform font size for all text elements
-base_size <- 24  # Set the base size for all text elements
 
 
-ggplot(data_for_plot, aes(x = category, y = area_km2, fill = as.factor(category))) +
-  geom_bar(stat = "identity", color = "black") +
-  geom_text(aes(label = round(area_km2, 2)), vjust = -0.5, color = "black", size = 6.5) +
-  scale_fill_brewer(palette = "Set3", name = "Classes") +  
-  theme_light() +
-  labs(title = "Area per Category in km²",
-       x = "Categorie",
-       y = "Area (km²)") +
-  theme(text = element_text(size = base_size),  # Global text size
-        axis.text.x = element_text(angle = 45, hjust = 1))
+
