@@ -389,5 +389,37 @@ attribute_table <- freq(result_raster)
 # View the attribute table
 print(attribute_table)
 
+#############################################################################
 
+#Get the stats from the final raster
+
+##########################################################################
+
+# Calculate the area for each category
+freq_data <- freq(raster_final_reclass)
+freq_data[, "area_m2"] <- freq_data[, "count"]  # Each pixel is 1m²
+
+# Display the statistics
+print(freq_data)
+
+# Extract the values from the raster
+values <- values(raster_final_reclass)
+
+# Calculate the frequency and area in km² for each category
+freq_data <- freq(raster_final_reclass)
+freq_data$area_km2 <- freq_data$count / 1e6  # Convert area to km²
+
+# Create a data frame for ggplot
+data_for_plot <- data.frame(category = freq_data[, "value"], area_km2 = freq_data[, "area_km2"])
+
+# Customized plot with labels
+ggplot(data_for_plot, aes(x = category, y = area_km2, fill = as.factor(category))) +
+  geom_bar(stat = "identity", color="black") +
+  geom_text(aes(label = round(area_km2, 2)), vjust = -0.5, color = "black") +  # Add labels
+  scale_fill_brewer(palette = "Set3") +
+  theme_light() +
+  labs(title = "Area per Category in km²",
+       x = "Category",
+       y = "Area (km²)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
