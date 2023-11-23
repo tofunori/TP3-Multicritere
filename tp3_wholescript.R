@@ -94,7 +94,7 @@ buffers <- mapply(function(shp, dist) {
 # Rasterize each buffer using the extent of the reference raster and save each raster
 rasters <- lapply(seq_along(buffers), function(i) {
   rast <- raster(ref_raster)
-  rasterized <- rasterize(buffers[[i]], rast, field=1, background=1, fun=function(x, ...) 0)
+  rasterized <- rasterize(buffers[[i]], rast, field=1, background=1, fun=function(x, ...) 0) #here you need to determine the values of the buffers and the background
   # Save the rasterized buffer
   output_filename <- paste0("reclass_", i, ".tif")
   writeRaster(rasterized, output_filename, format="GTiff", overwrite=TRUE)
@@ -259,8 +259,6 @@ resampled_raster <- resample(filtered_raster, raster, method="bilinear")
 # Print the minimum and maximum 
 min_max_values <- range(resampled_raster, na.rm = TRUE)
 print(min_max_values)
-
-plot(raster)
 
 # 4. Reclassify the slope raster
 reclass_func <- function(x) {
